@@ -1,27 +1,13 @@
 name: Android CI
 
 on:
-  push:
-    branches:
-      - master
-      - release
-      - develop
-    tags:
-      - "**"
-    paths-ignore:
-      - "**.md"
-      - "**.yml"
-  pull_request:
-    branches:
-      - master
-      - release
-      - develop
+  workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
   build:
-    runs-on: [ubuntu-latest]
+    runs-on: [ubuntu-24.04]
     timeout-minutes: 60
 
     steps:
@@ -74,7 +60,7 @@ jobs:
           mappingFile: app/build/outputs/mapping/release/mapping.txt
 
   fdroid-build:
-    runs-on: [ubuntu-latest]
+    runs-on: [ubuntu-24.04]
     timeout-minutes: 60
 
     steps:
