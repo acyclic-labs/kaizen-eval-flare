@@ -29,12 +29,16 @@ jobs:
         with:
           packages: platform-tools
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+      - name: Restore Gradle cache
+        id: gradle-cache
+        uses: actions/cache/restore@v6
         with:
-          cache-provider: basic
-          # PRs reuse the cache from branch builds; only branch builds write it
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: gradle-${{ runner.os }}-${{ github.job }}-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-${{ github.job }}-
 
       - name: Apply Signing
         env:
@@ -55,6 +59,17 @@ jobs:
           BUILD_NUMBER: ${{github.run_number}}
           BUILD_VERSION: ${{github.ref_name}}
         run: ./gradlew :app:assembleRelease :app:bundleRelease :app:check :app:lint --stacktrace
+
+      # PRs only read the cache; branch and tag builds refresh it
+      - name: Save Gradle cache
+        if: github.event_name != 'pull_request' && steps.gradle-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: ${{ steps.gradle-cache.outputs.cache-primary-key }}
 
       - name: Publish to Google Play
         if: startsWith(github.ref, 'refs/tags/')
@@ -90,12 +105,16 @@ jobs:
         with:
           packages: platform-tools
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+      - name: Restore Gradle cache
+        id: gradle-cache
+        uses: actions/cache/restore@v6
         with:
-          cache-provider: basic
-          # PRs reuse the cache from branch builds; only branch builds write it
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: gradle-${{ runner.os }}-${{ github.job }}-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-${{ github.job }}-
 
       - name: F-Droid prebuild
         run: |
@@ -105,3 +124,14 @@ jobs:
 
       - name: Build F-Droid variant
         run: ./gradlew :app:assembleRelease :app:check :app:lint --stacktrace
+
+      # PRs only read the cache; branch and tag builds refresh it
+      - name: Save Gradle cache
+        if: github.event_name != 'pull_request' && steps.gradle-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: ${{ steps.gradle-cache.outputs.cache-primary-key }}
