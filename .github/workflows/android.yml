@@ -29,6 +29,13 @@ jobs:
         with:
           packages: platform-tools
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+          # PRs reuse the cache from branch builds; only branch builds write it
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+
       - name: Apply Signing
         env:
           ALIAS: ${{ secrets.ALIAS }}
@@ -82,6 +89,13 @@ jobs:
         uses: android-actions/setup-android@v4
         with:
           packages: platform-tools
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+          # PRs reuse the cache from branch builds; only branch builds write it
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
 
       - name: F-Droid prebuild
         run: |
